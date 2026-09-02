@@ -1,5 +1,5 @@
 :root {
-  --lf-color-bg: #f5f7fb;
+  --lf-color-bg: #f4f6fb;
   --lf-color-surface: #ffffff;
   --lf-color-surface-strong: #eef2f8;
   --lf-color-text: #172033;
@@ -7,6 +7,7 @@
   --lf-color-border: #d9e0ea;
   --lf-color-brand: #4f46e5;
   --lf-color-brand-strong: #3730a3;
+  --lf-color-brand-soft: #eef2ff;
   --lf-color-success: #087a55;
   --lf-color-danger: #b42318;
   --lf-shadow-card: 0 18px 48px rgba(23, 32, 51, 0.08);
@@ -34,11 +35,19 @@
   border-radius: 999px;
   cursor: pointer;
   font-weight: 750;
+  text-decoration: none;
   transition: transform 140ms ease, background 140ms ease, border-color 140ms ease;
 }
 
 .lf-button:hover:not(:disabled) {
   transform: translateY(-1px);
+}
+
+.lf-button:focus-visible,
+.lf-input:focus-visible,
+.lf-select:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--lf-color-brand) 28%, transparent);
+  outline-offset: 2px;
 }
 
 .lf-button:disabled {
@@ -64,4 +73,88 @@
 .lf-button--ghost {
   background: transparent;
   color: var(--lf-color-brand);
+}
+
+.lf-field {
+  display: grid;
+  gap: 8px;
+}
+
+.lf-field__label {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.lf-field__hint,
+.lf-field__error {
+  margin: 0;
+  font-size: 0.82rem;
+}
+
+.lf-field__hint {
+  color: var(--lf-color-text-muted);
+}
+
+.lf-field__error {
+  color: var(--lf-color-danger);
+}
+
+.lf-input,
+.lf-select {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--lf-color-border);
+  border-radius: var(--lf-radius-sm);
+  background: var(--lf-color-surface);
+  color: var(--lf-color-text);
+}
+
+.lf-stepper {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin: 0 0 28px;
+  padding: 0;
+  list-style: none;
+}
+
+.lf-stepper__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--lf-color-text-muted);
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.lf-stepper__number {
+  display: inline-grid;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--lf-color-surface-strong);
+}
+
+.lf-stepper__item.is-active,
+.lf-stepper__item.is-complete {
+  color: var(--lf-color-text);
+}
+
+.lf-stepper__item.is-active .lf-stepper__number {
+  background: var(--lf-color-brand);
+  color: #fff;
+}
+
+.lf-stepper__item.is-complete .lf-stepper__number {
+  background: var(--lf-color-brand-soft);
+  color: var(--lf-color-brand-strong);
+}
+
+@media (max-width: 720px) {
+  .lf-stepper {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
