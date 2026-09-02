@@ -5,7 +5,7 @@ import { ApplicationStatus } from './status/ApplicationStatus';
 
 function HomePage() {
   return (
-    <main className="page-shell home-page">
+    <main id="main-content" className="page-shell home-page">
       <section className="hero">
         <div className="hero__content">
           <p className="eyebrow">React 18 · TypeScript · Nx</p>
@@ -40,7 +40,7 @@ function HomePage() {
       <section className="architecture-grid section-block" aria-label="Project architecture highlights">
         <article><span>01</span><h2>Feature-oriented UI</h2><p>Routes and product flows live in the app, while reusable UI stays in a shared Nx library.</p></article>
         <article><span>02</span><h2>Typed domain logic</h2><p>Loan calculations and validation rules are isolated from presentation and covered by unit tests.</p></article>
-        <article><span>03</span><h2>Quality in the pipeline</h2><p>Type checks, tests, production build and Cypress smoke coverage are designed to run in CI.</p></article>
+        <article><span>03</span><h2>Quality in the pipeline</h2><p>Type checks, unit tests, production build and Cypress journeys run as one CI quality gate.</p></article>
       </section>
     </main>
   );
@@ -49,6 +49,7 @@ function HomePage() {
 export function App() {
   return (
     <div className="app-shell">
+      <a className="skip-link" href="#main-content">Skip to main content</a>
       <header className="topbar">
         <Link className="brand" to="/">LoanFlow</Link>
         <nav className="topbar__nav" aria-label="Primary navigation">

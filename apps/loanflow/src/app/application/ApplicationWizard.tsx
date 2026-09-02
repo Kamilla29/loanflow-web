@@ -1,9 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { useForm, type FieldPath } from 'react-hook-form';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { submitApplication } from '@loanflow/api';
+import { submitApplication, type SubmissionSimulation } from '@loanflow/api';
 import { useApplicationStore } from '@loanflow/application-state';
 import {
   applicationSchema,
@@ -15,6 +15,12 @@ import {
 import { Button, Card, FormField, Stepper } from '@loanflow/ui';
 
 const steps = ['Loan', 'Personal', 'Finances', 'Review'];
+const stepContent = [
+  ['Loan details', 'Confirm the amount and repayment period before continuing.'],
+  ['Your details', 'Tell us who is applying and how the demo service could contact you.'],
+  ['Income and expenses', 'Add a simple affordability snapshot for this fictional application.'],
+  ['Review and submit', 'Check the information before sending it to the mock application service.']
+] as const;
 
 const fieldsByStep: FieldPath<ApplicationFormValues>[][] = [
   ['amount', 'months'],
@@ -23,14 +29,22 @@ const fieldsByStep: FieldPath<ApplicationFormValues>[][] = [
   []
 ];
 
+function getSimulation(value: string | null): SubmissionSimulation {
+  if (value === 'error' || value === 'slow') return value;
+  return 'success';
+}
+
 export function ApplicationWizard() {
   const [activeStep, setActiveStep] = useState(0);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const stepHeadingRef = useRef<HTMLHeadingElement>(null);
+  const shouldFocusStep = useRef(false);
   const { draft, updateDraft, resetDraft } = useApplicationStore();
 
   const amountFromUrl = Number(searchParams.get('amount')) || draft.amount;
   const monthsFromUrl = Number(searchParams.get('months')) || draft.months;
+  const simulation = getSimulation(searchParams.get('simulate'));
 
   const form = useForm<ApplicationFormValues>({
     resolver: zodResolver(applicationSchema),
@@ -41,6 +55,17 @@ export function ApplicationWizard() {
       months: monthsFromUrl
     }
   });
+
+  useEffect(() => {
+    const subscription = form.watch((value) => updateDraft(value as Partial<ApplicationFormValues>));
+    return () => subscription.unsubscribe();
+  }, [form, updateDraft]);
+
+  useEffect(() => {
+    if (!shouldFocusStep.current) return;
+    stepHeadingRef.current?.focus();
+    stepHeadingRef.current?.scrollIntoView({ block: 'start' });
+  }, [activeStep]);
 
   const values = form.watch();
   const summary = useMemo(
@@ -53,38 +78,57 @@ export function ApplicationWizard() {
   );
 
   const mutation = useMutation({
-    mutationFn: submitApplication,
+    mutationFn: (data: ApplicationFormValues) => submitApplication(data, { simulation }),
     onSuccess: (result) => {
       resetDraft();
       navigate(`/status/${result.id}`, { state: result });
     }
   });
 
-  const goNext = async () => {
-    const valid = await form.trigger(fieldsByStep[activeStep]);
-    if (!valid) return;
-
-    updateDraft(form.getValues());
-    setActiveStep((step) => Math.min(step + 1, steps.length - 1));
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  const focusFirstInvalid = (fields: FieldPath<ApplicationFormValues>[]) => {
+    const invalidField = fields.find((field) => form.getFieldState(field).invalid);
+    if (invalidField) form.setFocus(invalidField);
   };
 
-  const goBack = () => setActiveStep((step) => Math.max(step - 1, 0));
+  const moveToStep = (nextStep: number) => {
+    shouldFocusStep.current = true;
+    mutation.reset();
+    setActiveStep(nextStep);
+  };
 
-  const onSubmit = form.handleSubmit((data) => {
-    updateDraft(data);
-    mutation.mutate(data);
-  });
+  const goNext = async () => {
+    const fields = fieldsByStep[activeStep];
+    const valid = await form.trigger(fields);
+    if (!valid) {
+      focusFirstInvalid(fields);
+      return;
+    }
+
+    moveToStep(Math.min(activeStep + 1, steps.length - 1));
+  };
+
+  const goBack = () => moveToStep(Math.max(activeStep - 1, 0));
+
+  const onSubmit = form.handleSubmit(
+    (data) => mutation.mutate(data),
+    (errors) => {
+      const firstInvalid = Object.keys(errors)[0] as FieldPath<ApplicationFormValues> | undefined;
+      if (firstInvalid) form.setFocus(firstInvalid);
+    }
+  );
+
+  const [stepTitle, stepDescription] = stepContent[activeStep];
+  const errors = form.formState.errors;
 
   return (
-    <main className="page-shell application-page">
+    <main id="main-content" className="page-shell application-page">
       <div className="application-heading">
         <div>
           <p className="eyebrow">Application journey</p>
           <h1 className="page-title">Your loan</h1>
-          <p className="page-lead">A four-step demo flow with schema validation, persisted client state and API-style submission.</p>
+          <p className="page-lead">A four-step demo flow with schema validation, persistent draft state and API-style submission.</p>
         </div>
-        <div className="application-heading__amount">
+        <div className="application-heading__amount" aria-live="polite">
           <span>Monthly estimate</span>
           <strong>{formatCurrency(summary.monthlyPayment)}</strong>
         </div>
@@ -92,14 +136,36 @@ export function ApplicationWizard() {
 
       <Card>
         <Stepper labels={steps} activeIndex={activeStep} />
-        <form onSubmit={onSubmit} noValidate>
+        <div className="step-intro">
+          <p className="eyebrow">Step {activeStep + 1} of {steps.length}</p>
+          <h2 ref={stepHeadingRef} tabIndex={-1}>{stepTitle}</h2>
+          <p>{stepDescription}</p>
+        </div>
+
+        <form onSubmit={onSubmit} noValidate aria-busy={mutation.isPending}>
           {activeStep === 0 && (
             <div className="form-grid">
-              <FormField label="Loan amount" htmlFor="amount" error={form.formState.errors.amount?.message}>
-                <input className="lf-input" id="amount" type="number" step="10000" {...form.register('amount', { valueAsNumber: true })} />
+              <FormField label="Loan amount" htmlFor="amount" error={errors.amount?.message}>
+                <input
+                  className="lf-input"
+                  id="amount"
+                  type="number"
+                  min="50000"
+                  max="1000000"
+                  step="10000"
+                  aria-invalid={Boolean(errors.amount)}
+                  aria-describedby={errors.amount ? 'amount-error' : undefined}
+                  {...form.register('amount', { valueAsNumber: true })}
+                />
               </FormField>
-              <FormField label="Repayment period (months)" htmlFor="months" error={form.formState.errors.months?.message}>
-                <select className="lf-select" id="months" {...form.register('months', { valueAsNumber: true })}>
+              <FormField label="Repayment period (months)" htmlFor="months" error={errors.months?.message}>
+                <select
+                  className="lf-select"
+                  id="months"
+                  aria-invalid={Boolean(errors.months)}
+                  aria-describedby={errors.months ? 'months-error' : undefined}
+                  {...form.register('months', { valueAsNumber: true })}
+                >
                   {[12, 24, 36, 48, 60, 72, 84, 96].map((term) => <option value={term} key={term}>{term}</option>)}
                 </select>
               </FormField>
@@ -113,25 +179,25 @@ export function ApplicationWizard() {
 
           {activeStep === 1 && (
             <div className="form-grid">
-              <FormField label="First name" htmlFor="firstName" error={form.formState.errors.firstName?.message}>
-                <input className="lf-input" id="firstName" autoComplete="given-name" {...form.register('firstName')} />
+              <FormField label="First name" htmlFor="firstName" error={errors.firstName?.message}>
+                <input className="lf-input" id="firstName" autoComplete="given-name" aria-invalid={Boolean(errors.firstName)} aria-describedby={errors.firstName ? 'firstName-error' : undefined} {...form.register('firstName')} />
               </FormField>
-              <FormField label="Last name" htmlFor="lastName" error={form.formState.errors.lastName?.message}>
-                <input className="lf-input" id="lastName" autoComplete="family-name" {...form.register('lastName')} />
+              <FormField label="Last name" htmlFor="lastName" error={errors.lastName?.message}>
+                <input className="lf-input" id="lastName" autoComplete="family-name" aria-invalid={Boolean(errors.lastName)} aria-describedby={errors.lastName ? 'lastName-error' : undefined} {...form.register('lastName')} />
               </FormField>
-              <FormField label="Email" htmlFor="email" error={form.formState.errors.email?.message}>
-                <input className="lf-input" id="email" type="email" autoComplete="email" {...form.register('email')} />
+              <FormField label="Email" htmlFor="email" error={errors.email?.message}>
+                <input className="lf-input" id="email" type="email" autoComplete="email" aria-invalid={Boolean(errors.email)} aria-describedby={errors.email ? 'email-error' : undefined} {...form.register('email')} />
               </FormField>
-              <FormField label="Phone" htmlFor="phone" hint="International format is supported" error={form.formState.errors.phone?.message}>
-                <input className="lf-input" id="phone" type="tel" autoComplete="tel" {...form.register('phone')} />
+              <FormField label="Phone" htmlFor="phone" hint="International format is supported" error={errors.phone?.message}>
+                <input className="lf-input" id="phone" type="tel" autoComplete="tel" aria-invalid={Boolean(errors.phone)} aria-describedby={errors.phone ? 'phone-error' : 'phone-hint'} {...form.register('phone')} />
               </FormField>
             </div>
           )}
 
           {activeStep === 2 && (
             <div className="form-grid">
-              <FormField label="Employment" htmlFor="employmentType" error={form.formState.errors.employmentType?.message}>
-                <select className="lf-select" id="employmentType" {...form.register('employmentType')}>
+              <FormField label="Employment" htmlFor="employmentType" error={errors.employmentType?.message}>
+                <select className="lf-select" id="employmentType" aria-invalid={Boolean(errors.employmentType)} aria-describedby={errors.employmentType ? 'employmentType-error' : undefined} {...form.register('employmentType')}>
                   <option value="employee">Employee</option>
                   <option value="self-employed">Self-employed</option>
                   <option value="student">Student</option>
@@ -139,11 +205,11 @@ export function ApplicationWizard() {
                 </select>
               </FormField>
               <div />
-              <FormField label="Monthly net income" htmlFor="monthlyIncome" error={form.formState.errors.monthlyIncome?.message}>
-                <input className="lf-input" id="monthlyIncome" type="number" step="1000" {...form.register('monthlyIncome', { valueAsNumber: true })} />
+              <FormField label="Monthly net income" htmlFor="monthlyIncome" error={errors.monthlyIncome?.message}>
+                <input className="lf-input" id="monthlyIncome" type="number" min="1" step="1000" aria-invalid={Boolean(errors.monthlyIncome)} aria-describedby={errors.monthlyIncome ? 'monthlyIncome-error' : undefined} {...form.register('monthlyIncome', { valueAsNumber: true })} />
               </FormField>
-              <FormField label="Monthly expenses" htmlFor="monthlyExpenses" error={form.formState.errors.monthlyExpenses?.message}>
-                <input className="lf-input" id="monthlyExpenses" type="number" step="1000" {...form.register('monthlyExpenses', { valueAsNumber: true })} />
+              <FormField label="Monthly expenses" htmlFor="monthlyExpenses" error={errors.monthlyExpenses?.message}>
+                <input className="lf-input" id="monthlyExpenses" type="number" min="0" step="1000" aria-invalid={Boolean(errors.monthlyExpenses)} aria-describedby={errors.monthlyExpenses ? 'monthlyExpenses-error' : undefined} {...form.register('monthlyExpenses', { valueAsNumber: true })} />
               </FormField>
             </div>
           )}
@@ -152,31 +218,38 @@ export function ApplicationWizard() {
             <div className="review-grid">
               <section>
                 <p className="eyebrow">Loan</p>
-                <h2>{formatCurrency(values.amount)} over {values.months} months</h2>
+                <h3>{formatCurrency(values.amount)} over {values.months} months</h3>
                 <p>{formatCurrency(summary.monthlyPayment)} estimated monthly payment at {ILLUSTRATIVE_ANNUAL_RATE}% p.a.</p>
               </section>
               <section>
                 <p className="eyebrow">Applicant</p>
-                <h2>{values.firstName} {values.lastName}</h2>
+                <h3>{values.firstName} {values.lastName}</h3>
                 <p>{values.email}<br />{values.phone}</p>
               </section>
               <section>
                 <p className="eyebrow">Affordability snapshot</p>
-                <h2>{formatCurrency(values.monthlyIncome - values.monthlyExpenses)}</h2>
+                <h3>{formatCurrency(values.monthlyIncome - values.monthlyExpenses)}</h3>
                 <p>Illustrative monthly disposable amount based on the values entered.</p>
               </section>
               <p className="review-note">This portfolio demo does not perform credit scoring, identity verification or any real financial decision.</p>
             </div>
           )}
 
-          {mutation.isError && <p className="form-error" role="alert">The demo submission failed. Please try again.</p>}
+          {mutation.isError && (
+            <div className="submission-error" role="alert" data-cy="submission-error">
+              <strong>We could not submit the application.</strong>
+              <span>Your draft is still saved. Check the details and try again.</span>
+            </div>
+          )}
 
           <div className="form-actions">
             {activeStep > 0 ? <Button type="button" variant="secondary" onClick={goBack}>Back</Button> : <span />}
             {activeStep < steps.length - 1 ? (
-              <Button type="button" onClick={goNext}>Continue</Button>
+              <Button type="button" data-cy="continue" onClick={goNext}>Continue</Button>
             ) : (
-              <Button type="submit" disabled={mutation.isPending}>{mutation.isPending ? 'Submitting…' : 'Submit application'}</Button>
+              <Button type="submit" data-cy="submit" disabled={mutation.isPending}>
+                {mutation.isPending ? 'Submitting…' : mutation.isError ? 'Try again' : 'Submit application'}
+              </Button>
             )}
           </div>
         </form>

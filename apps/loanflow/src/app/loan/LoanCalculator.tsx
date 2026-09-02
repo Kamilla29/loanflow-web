@@ -51,6 +51,7 @@ export function LoanCalculator() {
               max={MAX_AMOUNT}
               step={10_000}
               value={amountInput}
+              aria-describedby="loan-amount-hint"
               onChange={(event) => setAmountInput(event.target.value)}
               onBlur={() => setAmountInput(String(amount))}
             />
@@ -62,6 +63,7 @@ export function LoanCalculator() {
               id="loan-term"
               data-cy="loan-term"
               value={months}
+              aria-describedby="loan-term-hint"
               onChange={(event) => setMonths(Number(event.target.value))}
             >
               {[12, 24, 36, 48, 60, 72, 84, 96].map((term) => (
