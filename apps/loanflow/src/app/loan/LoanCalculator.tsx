@@ -11,9 +11,17 @@ import {
 } from '@loanflow/domain';
 import { Card, FormField } from '@loanflow/ui';
 
+function normalizeAmount(value: string) {
+  const parsed = Number(value);
+
+  if (!Number.isFinite(parsed)) return MIN_AMOUNT;
+  return Math.min(MAX_AMOUNT, Math.max(MIN_AMOUNT, parsed));
+}
+
 export function LoanCalculator() {
-  const [amount, setAmount] = useState(250_000);
+  const [amountInput, setAmountInput] = useState('250000');
   const [months, setMonths] = useState(48);
+  const amount = normalizeAmount(amountInput);
 
   const summary = useMemo(
     () => calculateLoanSummary({ amount, months, annualRate: ILLUSTRATIVE_ANNUAL_RATE }),
@@ -38,11 +46,13 @@ export function LoanCalculator() {
               id="loan-amount"
               data-cy="loan-amount"
               type="number"
+              inputMode="numeric"
               min={MIN_AMOUNT}
               max={MAX_AMOUNT}
               step={10_000}
-              value={amount}
-              onChange={(event) => setAmount(Number(event.target.value) || MIN_AMOUNT)}
+              value={amountInput}
+              onChange={(event) => setAmountInput(event.target.value)}
+              onBlur={() => setAmountInput(String(amount))}
             />
           </FormField>
 
