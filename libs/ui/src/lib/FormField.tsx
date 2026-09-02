@@ -12,7 +12,11 @@ export function FormField({ label, htmlFor, hint, error, children }: FormFieldPr
     <div className="lf-field">
       <label className="lf-field__label" htmlFor={htmlFor}>{label}</label>
       {children}
-      {error ? <p className="lf-field__error" role="alert">{error}</p> : hint ? <p className="lf-field__hint">{hint}</p> : null}
+      {error ? (
+        <p className="lf-field__error" id={`${htmlFor}-error`} role="alert">{error}</p>
+      ) : hint ? (
+        <p className="lf-field__hint" id={`${htmlFor}-hint`}>{hint}</p>
+      ) : null}
     </div>
   );
 }

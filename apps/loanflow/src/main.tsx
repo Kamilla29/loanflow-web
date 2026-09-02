@@ -5,6 +5,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { App } from './app/App';
 import '@loanflow/ui/styles.css';
 import './app/app.css';
+import './app/polish.css';
 
 const queryClient = new QueryClient({
   defaultOptions: {

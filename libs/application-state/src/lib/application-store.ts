@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { ApplicationFormValues } from '@loanflow/domain';
 
 const initialDraft: ApplicationFormValues = {
@@ -19,8 +20,15 @@ type ApplicationStore = {
   resetDraft: () => void;
 };
 
-export const useApplicationStore = create<ApplicationStore>((set) => ({
-  draft: initialDraft,
-  updateDraft: (patch) => set((state) => ({ draft: { ...state.draft, ...patch } })),
-  resetDraft: () => set({ draft: initialDraft })
-}));
+export const useApplicationStore = create<ApplicationStore>()(
+  persist(
+    (set) => ({
+      draft: initialDraft,
+      updateDraft: (patch) => set((state) => ({ draft: { ...state.draft, ...patch } })),
+      resetDraft: () => set({ draft: initialDraft })
+    }),
+    {
+      name: 'loanflow-application-draft'
+    }
+  )
+);
