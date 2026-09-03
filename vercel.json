@@ -1,0 +1,5 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist/apps/loanflow",
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}
