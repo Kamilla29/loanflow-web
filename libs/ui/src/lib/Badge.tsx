@@ -1,4 +1,9 @@
 import type { PropsWithChildren } from 'react';
-export function Badge({ tone = 'brand', children }: PropsWithChildren<{ tone?: 'brand' | 'success' | 'warning' | 'neutral' }>) {
+
+type BadgeProps = PropsWithChildren<{
+  tone?: 'brand' | 'success' | 'warning' | 'neutral';
+}>;
+
+export function Badge({ tone = 'brand', children }: BadgeProps) {
   return <span className={`lf-badge lf-badge--${tone}`}>{children}</span>;
 }
