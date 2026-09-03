@@ -1,48 +1,34 @@
-# LoanFlow test strategy
+# Test strategy
 
-LoanFlow uses a small testing pyramid aimed at the risks of a form-heavy fintech-style frontend.
+LoanFlow uses a compact risk-based test pyramid focused on the behavior most likely to affect a loan application journey.
 
-## 1. Static quality gate
+## Unit
 
-TypeScript checks the application and library boundaries before runtime tests execute. A production Vite build is also required in CI so import, bundling and route-level integration errors fail the pipeline.
+Vitest covers:
 
-## 2. Domain unit tests
+- amortized loan calculation and zero-rate behavior;
+- application schema validation;
+- affordability classification;
+- successful and failed application submission;
+- direct-navigation status recovery at the asynchronous data-access boundary.
 
-Vitest covers logic that should stay independent from the browser:
+## End-to-end
 
-- amortized loan calculations;
-- application schema acceptance and rejection;
-- affordability validation rules.
+Cypress covers:
 
-## 3. End-to-end journeys
+1. calculator → application → status happy path;
+2. step-level validation and focus behavior;
+3. recoverable service failure with persisted draft state;
+4. shared component showcase availability.
 
-Cypress runs against the production preview build and covers:
+## Accessibility review
 
-- calculator → application parameter handoff;
-- the complete four-step happy path;
-- invalid personal data and accessible error state;
-- asynchronous submission failure and draft preservation.
-
-The mock application service exposes a deterministic `simulate=error` query mode so failure handling can be verified without flaky network behavior.
-
-## 4. Accessibility checks in scope
-
-The current implementation explicitly verifies or implements:
-
-- label/control association;
-- `aria-invalid` and `aria-describedby` on invalid fields;
-- alert semantics for validation and submission errors;
-- `aria-current="step"` in progress navigation;
-- keyboard-visible skip link;
-- focus movement when a multi-step form changes step;
-- reduced-motion handling.
-
-A future iteration can add automated axe-core scanning as a second layer, not as a replacement for semantic assertions and manual keyboard review.
+Keyboard navigation, visible focus, semantic headings, associated labels/help/error text, `aria-invalid`, `aria-current`, live status regions, skip navigation and reduced-motion behavior are part of the release checklist.
 
 ## CI gate
 
-Every push and pull request runs:
+Every pull request and push to `main` runs the same quality path:
 
 `typecheck → unit tests → production build → Cypress E2E`
 
-A change should not be merged while this gate is red.
+A change is considered release-ready only after this gate is green.

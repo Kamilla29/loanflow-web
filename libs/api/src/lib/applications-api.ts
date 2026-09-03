@@ -1,8 +1,10 @@
 import type { ApplicationFormValues } from '@loanflow/domain';
 
+export type ApplicationStatusValue = 'received' | 'reviewing' | 'decision-ready';
+
 export type SubmittedApplication = {
   id: string;
-  status: 'received';
+  status: ApplicationStatusValue;
   submittedAt: string;
 };
 
@@ -16,12 +18,16 @@ function wait(milliseconds: number) {
   return new Promise((resolve) => globalThis.setTimeout(resolve, milliseconds));
 }
 
+function referenceId() {
+  return `LF-${Date.now().toString(36).toUpperCase()}`;
+}
+
 export async function submitApplication(
   application: ApplicationFormValues,
   options: SubmitApplicationOptions = {}
 ): Promise<SubmittedApplication> {
   const simulation = options.simulation ?? 'success';
-  await wait(simulation === 'slow' ? 2_000 : 650);
+  await wait(simulation === 'slow' ? 1_800 : 450);
 
   if (simulation === 'error') {
     throw new Error('The application service is temporarily unavailable.');
@@ -30,8 +36,18 @@ export async function submitApplication(
   void application;
 
   return {
-    id: `LF-${Date.now().toString(36).toUpperCase()}`,
+    id: referenceId(),
     status: 'received',
+    submittedAt: new Date().toISOString()
+  };
+}
+
+export async function getApplicationStatus(id: string): Promise<SubmittedApplication> {
+  await wait(260);
+
+  return {
+    id,
+    status: 'reviewing',
     submittedAt: new Date().toISOString()
   };
 }

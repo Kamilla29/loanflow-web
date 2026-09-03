@@ -28,7 +28,8 @@ export const useApplicationStore = create<ApplicationStore>()(
       resetDraft: () => set({ draft: initialDraft })
     }),
     {
-      name: 'loanflow-application-draft'
+      name: 'loanflow-application-draft',
+      version: 1
     }
   )
 );

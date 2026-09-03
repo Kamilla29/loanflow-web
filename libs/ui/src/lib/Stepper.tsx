@@ -12,7 +12,9 @@ export function Stepper({ labels, activeIndex }: StepperProps) {
           key={label}
           aria-current={index === activeIndex ? 'step' : undefined}
         >
-          <span className="lf-stepper__number">{index + 1}</span>
+          <span className="lf-stepper__number" aria-hidden="true">
+            {index < activeIndex ? '✓' : index + 1}
+          </span>
           <span>{label}</span>
         </li>
       ))}
