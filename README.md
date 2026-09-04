@@ -65,7 +65,7 @@ See [`docs/test-strategy.md`](docs/test-strategy.md) and [`docs/accessibility.md
 ## Run locally
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
