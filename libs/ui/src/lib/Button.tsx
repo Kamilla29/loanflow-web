@@ -6,7 +6,11 @@ type ButtonProps = PropsWithChildren<ButtonHTMLAttributes<HTMLButtonElement>> & 
 
 export function Button({ variant = 'primary', className = '', children, ...props }: ButtonProps) {
   return (
-    <button className={`lf-button lf-button--${variant} ${className}`.trim()} {...props}>
+    <button
+      key={props.type}
+      className={`lf-button lf-button--${variant} ${className}`.trim()}
+      {...props}
+    >
       {children}
     </button>
   );
