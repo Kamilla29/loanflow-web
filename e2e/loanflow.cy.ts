@@ -37,6 +37,12 @@ describe('LoanFlow portfolio journeys', () => {
     completeFinancesStep();
 
     cy.contains('Review and submit').should('be.visible');
+    cy.get('[data-cy="submit"]')
+      .should('be.visible')
+      .and('be.enabled')
+      .and('contain.text', 'Submit application');
+    cy.url().should('include', '/apply');
+
     cy.get('[data-cy="submit"]').click();
     cy.url().should('include', '/status/LF-');
     cy.get('[data-cy="application-reference"]').should('contain.text', 'LF-');
