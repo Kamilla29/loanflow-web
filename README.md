@@ -1,5 +1,7 @@
 # LoanFlow
 
+[![CI](https://github.com/Kamilla29/loanflow-web/actions/workflows/ci.yml/badge.svg)](https://github.com/Kamilla29/loanflow-web/actions/workflows/ci.yml)
+
 **LoanFlow** is a fictional consumer-loan application built as a production-style **React 18 + TypeScript** portfolio project.
 
 It demonstrates a realistic frontend journey with reusable UI architecture, typed domain rules, multi-step forms, persisted drafts, asynchronous data boundaries, failure recovery, accessibility-minded interaction design and automated testing.
@@ -84,6 +86,11 @@ npm run ci
 ## Deployment
 
 A Vercel SPA configuration is included in `vercel.json`. The production build output is `dist/apps/loanflow`.
+
+## Related portfolio projects
+
+- [`QA Automation Lab`](https://github.com/Kamilla29/qa-automation-lab) independently tests a pinned LoanFlow revision with Playwright, API contracts, accessibility checks and cross-browser regression.
+- [`PocketFlow Mobile`](https://github.com/Kamilla29/pocketflow-mobile) extends the same fictional product family into a React Native mobile companion focused on repayment and application visibility.
 
 ---
 
