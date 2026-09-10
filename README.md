@@ -95,4 +95,4 @@ A Vercel SPA configuration is included in `vercel.json`. The production build ou
 ---
 
 **Kamilla Kuanysheva**  
-React Developer · TypeScript · QA Automation
+React Developer · TypeScript · Frontend Engineering
