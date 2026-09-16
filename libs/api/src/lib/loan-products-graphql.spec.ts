@@ -1,4 +1,9 @@
-import { apolloClient, LOAN_PRODUCTS_QUERY, type LoanProductsQueryData, type LoanProductsQueryVariables } from './loan-products-graphql';
+import {
+  apolloClient,
+  LOAN_PRODUCTS_QUERY,
+  type LoanProductsQueryData,
+  type LoanProductsQueryVariables
+} from './loan-products-graphql';
 
 describe('Apollo GraphQL product catalogue', () => {
   it('returns matching products for amount and term variables', async () => {
@@ -19,7 +24,11 @@ describe('Apollo GraphQL product catalogue', () => {
       fetchPolicy: 'network-only'
     });
 
-    const cached = apolloClient.cache.extract();
-    expect(cached['LoanProduct:{"id":"flexi"}']).toBeDefined();
+    expect(
+      apolloClient.cache.identify({
+        __typename: 'LoanProduct',
+        id: 'flexi'
+      })
+    ).toBe('LoanProduct:{"id":"flexi"}');
   });
 });
