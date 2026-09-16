@@ -28,6 +28,7 @@ describe('LoanFlow portfolio journeys', () => {
     cy.get('[data-cy="loan-amount"]').clear().type('300000');
     cy.get('[data-cy="loan-term"]').select('60');
     cy.get('[data-cy="monthly-payment"]').should('contain.text', 'Kč');
+    cy.get('[data-cy="graphql-product"]').should('contain.text', 'Flexi Loan');
 
     cy.contains('Start application').click();
     cy.url().should('include', '/apply?amount=300000&months=60');
