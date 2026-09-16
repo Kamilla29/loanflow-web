@@ -1,0 +1,53 @@
+.graphql-match {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 28px;
+  margin-top: 28px;
+  padding: 22px 24px;
+  border: 1px solid var(--lf-color-border);
+  border-radius: var(--lf-radius-md);
+  background: color-mix(in srgb, var(--lf-color-brand-soft) 48%, var(--lf-color-surface));
+}
+
+.graphql-match h3 {
+  margin-bottom: 6px;
+  font-size: 1.2rem;
+  letter-spacing: -0.025em;
+}
+
+.graphql-match p:last-child {
+  margin-bottom: 0;
+  color: var(--lf-color-text-muted);
+  line-height: 1.55;
+}
+
+.graphql-match__rate {
+  display: grid;
+  min-width: 190px;
+  gap: 3px;
+  text-align: right;
+}
+
+.graphql-match__rate span,
+.graphql-match__rate small {
+  color: var(--lf-color-text-muted);
+  font-size: 0.76rem;
+}
+
+.graphql-match__rate strong {
+  color: var(--lf-color-brand-strong);
+  font-size: 1.45rem;
+  letter-spacing: -0.04em;
+}
+
+@media (max-width: 680px) {
+  .graphql-match {
+    grid-template-columns: 1fr;
+  }
+
+  .graphql-match__rate {
+    min-width: 0;
+    text-align: left;
+  }
+}
