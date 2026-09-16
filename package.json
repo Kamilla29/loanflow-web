@@ -8,6 +8,7 @@
     "build": "nx build loanflow",
     "typecheck": "nx run loanflow:typecheck",
     "test": "nx test loanflow",
+    "test:api": "nx test api",
     "preview": "nx run loanflow:preview",
     "cypress:run": "cypress run --config-file cypress.config.cjs",
     "e2e": "start-server-and-test preview http://127.0.0.1:4300 cypress:run",
