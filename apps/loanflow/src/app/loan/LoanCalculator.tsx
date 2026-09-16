@@ -16,6 +16,7 @@ import {
   MIN_TERM
 } from '@loanflow/domain';
 import { Card, FormField } from '@loanflow/ui';
+import './LoanCalculator.css';
 
 function normalizeAmount(value: string) {
   const parsed = Number(value);
