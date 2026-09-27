@@ -2,11 +2,17 @@
 
 [![CI](https://github.com/Kamilla29/loanflow-web/actions/workflows/ci.yml/badge.svg)](https://github.com/Kamilla29/loanflow-web/actions/workflows/ci.yml)
 
-**LoanFlow** is a fictional consumer-loan application built as a production-style **React 18 + TypeScript** portfolio project.
-
-It demonstrates a realistic frontend journey with reusable UI architecture, typed domain rules, multi-step forms, persisted drafts, REST-style and GraphQL data boundaries, failure recovery, accessibility-minded interaction design and automated testing.
+**LoanFlow** is a fictional consumer-loan application built as a production-style **React 18 + TypeScript** portfolio case focused on product frontend engineering, typed data boundaries, failure handling and testability.
 
 > Portfolio project only. LoanFlow is not affiliated with, copied from, or connected to any real bank.
+
+## Recruiter snapshot
+
+- **Product frontend:** multi-step application flow, reusable components, domain rules and persistent state.
+- **Application data:** REST-style services plus GraphQL/Apollo Client behind explicit data-access boundaries.
+- **Engineering quality:** validation, loading/error/retry states, accessibility, unit tests, E2E tests and CI.
+- **Architecture:** Nx workspace with UI, domain, state and API responsibilities separated into inspectable libraries.
+- **Role relevance:** React / Frontend Developer, Junior Software Developer, application-oriented web roles.
 
 ## What the project demonstrates
 
@@ -109,4 +115,4 @@ A Vercel SPA configuration is included in `vercel.json`. The production build ou
 ---
 
 **Kamilla Kuanysheva**  
-React Developer · TypeScript · Frontend Engineering
+Junior Software Developer · React · APIs · Testing
